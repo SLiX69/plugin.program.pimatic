@@ -36,6 +36,10 @@ msgctxt "#32038"
 msgid "Password"
 msgstr ""
 
+msgctxt "#32040"
+msgid "Show and set 'active' & 'logging' for rules"
+msgstr ""
+
 msgctxt "#32050"
 msgid "Do you really want to execute the rule?"
 msgstr ""

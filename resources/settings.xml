@@ -6,5 +6,6 @@
 		<setting label="32037" type="text" id="username" default="demo"/>
 		<setting label="32038" type="text" id="password" option="hidden" enable="!eq(-1,)" default="demo"/>
 		<setting type="sep"/>
+		<setting label="32040" type="bool" id="advanced_rules" default="true"/>
     </category>
 </settings>
