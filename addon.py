@@ -150,6 +150,15 @@ def getURL(url):
     return data
     r.close()
 
+def addDevice(url):
+    xbmc.log(url)
+    if url:
+        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage2.py,'+ url +',').decode('utf-8')
+        xbmc.executebuiltin('XBMC.RunScript(%s add,devices)' % u)
+    else:
+        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage2.py,,').decode('utf-8')
+        xbmc.executebuiltin('XBMC.RunScript(%s add,both)' % u)
+
 
 def addItem(item):
     keyboard = xbmc.Keyboard('', 'add '+item+'')
@@ -299,6 +308,8 @@ elif mode == 12:
     getActionsAsPopup(deviceid)
 elif mode == 13:
     executeRule(url)
+elif mode == 14:
+    addDevice(url)
 elif mode == 29:
     addItem('page')
 elif mode == 31:

@@ -64,7 +64,10 @@ def addDeviceToPage(deviceid, option, url):
     if option == 'add':
         r = requests.post(url)
     elif option == 'rem':
-        r = requests.delete(url)
+        line1 = "Do you really want to delete the item?"
+        retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
+        if retval_rule == 1:
+            r = requests.delete(url)
     elif option == 'ask':
         dialog=xbmcgui.Dialog()
         list = ['add', 'rem']
@@ -73,7 +76,10 @@ def addDeviceToPage(deviceid, option, url):
         if option == 'add':
             r = requests.post(url)
         elif option == 'rem':
-           r = requests.delete(url)
+            line1 = "Do you really want to delete the item?"
+            retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
+            if retval_rule == 1:
+                r = requests.delete(url)
     else:
         xbmc.executebuiltin('XBMC.Notification(Pimatic Addon,unsupported action (add or rem),2000)')
         xbmc.log('Pimatic Addon - Wrong Option - %s %s %s' % (id, deviceid, option))

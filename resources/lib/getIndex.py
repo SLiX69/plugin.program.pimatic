@@ -60,6 +60,11 @@ def getRule(deviceid):
 def getPage(url):
     data = getURL('http://%s:%s@%s:%s/api/pages/%s' % (username, password, host, port, url))['page']
     pageid = url
+    xbmc.log(pageid)
+    try:                                # if page is empty
+        print data['devices'][0]['deviceId']
+    except:
+        addDir('add Device', url, 14, '', '')
     for i in data['devices']:
         name = i['deviceId']
         deviceid = name
