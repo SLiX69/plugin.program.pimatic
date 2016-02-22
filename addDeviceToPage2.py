@@ -64,7 +64,7 @@ def addDeviceToPage(deviceid, option, url):
     if option == 'add':
         r = requests.post(url)
     elif option == 'rem':
-        line1 = "Do you really want to delete the item?"
+        line1 = "Do you really want to remove '%s'?" % id
         retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
         if retval_rule == 1:
             r = requests.delete(url)
@@ -76,7 +76,7 @@ def addDeviceToPage(deviceid, option, url):
         if option == 'add':
             r = requests.post(url)
         elif option == 'rem':
-            line1 = "Do you really want to delete the item?"
+            line1 = "Do you really want to remove '%s'?" % id
             retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
             if retval_rule == 1:
                 r = requests.delete(url)

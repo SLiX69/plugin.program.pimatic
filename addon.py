@@ -20,7 +20,7 @@ addon = xbmcaddon.Addon(id=addonID)
 home = addon.getAddonInfo('path').decode('utf-8')
 icon = xbmc.translatePath(os.path.join(home, 'icon.png'))
 fanart = xbmc.translatePath(os.path.join(home, 'fanart.jpg'))
-addDeviceToPage = xbmc.translatePath(os.path.join(home, 'addDeviceToPage.py'))
+#addDeviceToPage = xbmc.translatePath(os.path.join(home, 'addDeviceToPage2.py'))
 pluginhandle = int(sys.argv[1])
 
 translation = addon.getLocalizedString
@@ -149,6 +149,31 @@ def getURL(url):
     data=r.json()
     return data
     r.close()
+
+def addDevice(url):
+    xbmc.log(url)
+    if url:
+        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage2.py,'+ url +',').decode('utf-8')
+        xbmc.executebuiltin('XBMC.RunScript(%s add,devices)' % u)
+    else:
+        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage2.py,,').decode('utf-8')
+        xbmc.executebuiltin('XBMC.RunScript(%s add,both)' % u)
+
+def setRule(url, iconimage, deviceid):
+    ruleid = iconimage
+    if url == 'True':
+        line1 = "%s is %s. Set it to 'False'?" % (deviceid, url)
+        choice = False
+    else:
+        line1 = "%s is %s. Set it to 'True'?" % (deviceid, url)
+        choice = True
+    retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
+    if retval_rule == 1:
+        url = ('http://%s:%s@%s:%s/api/rules/%s' % (username, password, host, port, ruleid))
+        payload = {'ruleId': ruleid, 'rule':{deviceid: choice}}
+        r = requests.patch(url, json=payload)
+        #status = (str(r.status_code))
+        #out = str(r.json())
 
 
 def addItem(item):
@@ -299,6 +324,10 @@ elif mode == 12:
     getActionsAsPopup(deviceid)
 elif mode == 13:
     executeRule(url)
+elif mode == 14:
+    addDevice(url)
+elif mode == 15:
+    setRule(url, iconimage, deviceid)
 elif mode == 29:
     addItem('page')
 elif mode == 31:

@@ -23,6 +23,8 @@ host = addon.getSetting('ipaddress')
 port = addon.getSetting('port')
 username = addon.getSetting('username')
 password = addon.getSetting('password')
+adv_rule = addon.getSetting('advanced_rules')
+perm_add = addon.getSetting('perm_add_dev')
 
 
 
@@ -49,17 +51,28 @@ def getGroup(url):
     xbmcplugin.endOfDirectory(pluginhandle,succeeded=True,updateListing=False,cacheToDisc=True)
 
 def getRule(deviceid):
-    data = getURL('http://%s:%s@%s:%s/api/rules/%s' % (username, password, host, port, deviceid))['rule']['conditionToken']
-    name = data
-    addDir('IF: '+name,'',90,'','',)
-    url = getURL('http://%s:%s@%s:%s/api/rules/%s' % (username, password, host, port, deviceid))['rule']['actionsToken']
-    addDir('THEN: '+url,url,13,'','',)
+    data = getURL('http://%s:%s@%s:%s/api/rules/%s' % (username, password, host, port, deviceid))['rule']
+    cond = data['conditionToken']
+    actn = data['actionsToken']
+    acti = str(data['active'])
+    logg = str(data['logging'])
+    addDir('IF: '+cond, '', 90, '', '')
+    addDir('THEN: '+actn, actn, 13, '', '')                                # url is for execution
+    if adv_rule == 'true':
+        addDir('active: '+acti, acti, 15, deviceid, 'active')
+        addDir('logging: '+logg, logg, 15, deviceid, 'logging')
 
     xbmcplugin.endOfDirectory(pluginhandle,succeeded=True,updateListing=False,cacheToDisc=True)
+
 
 def getPage(url):
     data = getURL('http://%s:%s@%s:%s/api/pages/%s' % (username, password, host, port, url))['page']
     pageid = url
+    xbmc.log(pageid)
+    try:                                # if page is empty
+        print data['devices'][0]['deviceId']
+    except:
+        addDir('add Device', url, 14, '', '')
     for i in data['devices']:
         name = i['deviceId']
         deviceid = name
@@ -87,7 +100,7 @@ def getAllDevices():
         name = (i['id']).encode('utf-8')
         deviceid = name
         url = getDeviceTemplate(deviceid)
-        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage.py,'+ name +',').decode('utf-8')
+        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage2.py,'+ name +',').decode('utf-8')
         cm = []
         cm.append( ('Add to page', "XBMC.RunScript(%s add,pages)" % u) )
         cm.append( ('Remove from page', "XBMC.RunScript(%s rem,pages)" % u) )
