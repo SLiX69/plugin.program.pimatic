@@ -11,5 +11,6 @@
     <summary>pimatic beta</summary>
     <description></description>
     <platform>all</platform>
+	<license>GNU General Public License v3</license>
   </extension>
 </addon>
