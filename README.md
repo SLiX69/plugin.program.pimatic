@@ -1,4 +1,4 @@
-# plugin.video.pimatic
+# plugin.program.pimatic
 Pimatic Addon for Kodi 
 
 Pimatic Addon v0.2.5 - BETA
