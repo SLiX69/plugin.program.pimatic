@@ -15,7 +15,7 @@ from resources.lib.getIndex import getAllDevices,getAllVars,getAllRules,getAllGr
 from resources.lib.getDeviceStuff import getActionsList,getDeviceHistory
 
 
-addonID = 'plugin.video.pimatic'
+addonID = 'plugin.program.pimatic'
 addon = xbmcaddon.Addon(id=addonID)
 home = addon.getAddonInfo('path').decode('utf-8')
 icon = xbmc.translatePath(os.path.join(home, 'icon.png'))

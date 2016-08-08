@@ -12,7 +12,7 @@ xbmc.log(mode)
 url  = sys.argv[3]  #pages or devices list
 xbmc.log(url)
 
-addonID = 'plugin.video.pimatic'
+addonID = 'plugin.program.pimatic'
 addon = xbmcaddon.Addon(id=addonID)
 home = addon.getAddonInfo('path').decode('utf-8')
 

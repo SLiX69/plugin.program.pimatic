@@ -13,7 +13,7 @@ from getDeviceStuff import getDeviceTemplate,getDeviceValue
 
 
 
-addonID = 'plugin.video.pimatic'
+addonID = 'plugin.program.pimatic'
 addon = xbmcaddon.Addon(id=addonID)
 home = addon.getAddonInfo('path').decode('utf-8')
 pluginhandle = int(sys.argv[1])
