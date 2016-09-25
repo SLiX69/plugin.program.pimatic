@@ -38,6 +38,7 @@ def get_page(pageId):
     #xbmc.log(str(devices))
     for device in devices:
         name = device['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
         #url = device['url']    #old template
         #mode = device['mode']
         deviceId = device['deviceId']
@@ -62,6 +63,7 @@ def get_all_devices():
     devices = pim.get_all_devices()
     for device in devices:
         deviceId = device['name']
+        xbmc.log(str(deviceId), level=xbmc.LOGDEBUG)
         #url = device['url']    #old template
         # FIX CM
         '''
@@ -76,6 +78,7 @@ def get_all_devices():
 
 
 def get_rule(rule_id):
+    xbmc.log(str(rule_id), level=xbmc.LOGDEBUG)
     data = pim.get_rule(rule_id)
     id = data['id']
     name = data['name']
@@ -126,6 +129,7 @@ def get_all_rules():
     rules = pim.get_all_rules()
     for rule in rules:
         name = rule['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
         deviceid = rule['deviceId']
         addDir(name, '', 'getRule', '', deviceid)
     xbmcplugin.endOfDirectory(pluginhandle)
@@ -135,6 +139,7 @@ def get_all_vars():
     variables = pim.get_all_vars()
     for variable in variables:
         name = variable['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
         addDir(name, '', 'end', '', '', )
     xbmcplugin.endOfDirectory(pluginhandle)
 
@@ -143,6 +148,7 @@ def get_all_groups():
     groups = pim.get_all_groups()
     for group in groups:
         name = group['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
         url = group['url']
         groupid = group['id']
         addDir(name, url, 'getGroup', '', groupid)
@@ -154,6 +160,7 @@ def get_all_groups():
 def get_group(groupid):
     devices = pim.get_group(groupid)
     for device in devices:
+        xbmc.log(str(device), level=xbmc.LOGDEBUG)
         name = device
         addDir(name, '', 'getDevice', '', name)
     xbmcplugin.endOfDirectory(pluginhandle)
@@ -163,6 +170,7 @@ def get_group(groupid):
 
 
 def get_device(deviceid):
+    xbmc.log(str(deviceid), level=xbmc.LOGDEBUG)
     cnt = 0
     values, actions = pim.get_device_values(deviceid)
     if actions:
@@ -187,6 +195,7 @@ def get_attribute_history(deviceid, url):
 
 
 def get_device_actions(deviceid):
+    xbmc.log(str(deviceid), level=xbmc.LOGDEBUG)
     actions_select(deviceid)
 
 
