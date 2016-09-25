@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.program.pimatic" version="0.3" name="pimatic" provider-name="SLiX">
+  <requires>
+   <import addon="xbmc.python" version="2.19.0"/>
+   <import addon="script.module.requests" version="2.7.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+   <provides>executable</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary>pimatic beta</summary>
+    <description></description>
+    <platform>all</platform>
+	<license>GNU General Public License v3</license>
+  </extension>
+</addon>

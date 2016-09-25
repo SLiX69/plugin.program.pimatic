@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category label="30101">
+        <setting label="30135" type="ipaddress" id="ipaddress" default="demo.pimatic.org"/>
+		<setting label="30136" type="number" id="port" default="80"/>
+		<setting label="30137" type="text" id="username" default="demo"/>
+		<setting label="30138" type="text" id="password" option="hidden" enable="!eq(-1,)" default="demo"/>
+    </category>
+</settings>
