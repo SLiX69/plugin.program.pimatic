@@ -81,7 +81,7 @@ class pimatic:
         for i in data['device']['attributes']:
             name = i['name'].encode('utf-8')
             value = i['value']
-            if isinstance(value, float) or isinstance(value, int) or (value is None):
+            if isinstance(value, float) or isinstance(value, int) or isinstance(value, long) or (value is None):
                 value = str(value)
             value = value.encode('utf-8')
             name += ' is ' + value
@@ -147,7 +147,7 @@ class pimatic:
             name = i['name'].encode('utf-8')
             value = i['value']
             unit = i['unit']
-            if isinstance(value, float) or isinstance(value, int) or (value is None):
+            if isinstance(value, float) or isinstance(value, int) or isinstance(value, long) or (value is None):
                 value = str(value)
             value = ' ' + value.encode('utf-8') + unit.encode('utf-8')
             name += value
