@@ -80,10 +80,13 @@ class pimatic:
             actions = True
         for i in data['device']['attributes']:
             name = i['name'].encode('utf-8')
-            value = i['value']
-            if isinstance(value, float) or isinstance(value, int) or isinstance(value, long) or (value is None):
-                value = str(value)
-            value = value.encode('utf-8')
+            try:
+                value = i['value']
+                if isinstance(value, float) or isinstance(value, int) or isinstance(value, long) or (value is None):
+                    value = str(value)
+                value = value.encode('utf-8')
+            except KeyError:
+                value = ''
             name += ' is ' + value
             if 'unit' in i:
                 unit = i['unit'].encode('utf-8')
