@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import urllib
 import sys
@@ -16,7 +15,7 @@ icon = xbmc.translatePath(os.path.join(home, 'icon.png'))
 fanart = xbmc.translatePath(os.path.join(home, 'fanart.jpg'))
 # addDeviceToPage = xbmc.translatePath(os.path.join(home, 'addDeviceToPage2.py'))
 pluginhandle = int(sys.argv[1])
-
+TRANSLATE = addon.getLocalizedString
 
 host = addon.getSetting('ipaddress')
 port = addon.getSetting('port')
@@ -25,13 +24,15 @@ password = addon.getSetting('password')
 
 pim = pimatic(host, port, username, password)
 
+
 def main():
-    addDir(get_translation(30010), '', 'getAllPages', '', '')
-    addDir(get_translation(30011), '', 'getAllDevices', '', '')
-    addDir(get_translation(30012), '', 'getAllVars', '', '')
-    addDir(get_translation(30013), '', 'getAllGroups', '', '')
-    addDir(get_translation(30014), '', 'getAllRules', '', '')
+    addDir(TRANSLATE(30010), '', 'getAllPages', '', '')
+    addDir(TRANSLATE(30011), '', 'getAllDevices', '', '')
+    addDir(TRANSLATE(30012), '', 'getAllVars', '', '')
+    addDir(TRANSLATE(30013), '', 'getAllGroups', '', '')
+    addDir(TRANSLATE(30014), '', 'getAllRules', '', '')
     xbmcplugin.endOfDirectory(pluginhandle)
+
 
 def get_page(pageId):
     devices = pim.get_page(pageId)
@@ -54,8 +55,8 @@ def get_all_pages():
         url = page['url']
         #mode = page['mode']
         addDir(name, url, 'getPage', '', '', )
-    #addDir(get_translation(30031), '', 'addPage', '', '')
-    #addDir(get_translation(30032), '', 'remPage', '', '')
+    #addDir(TRANSLATE(30031), '', 'addPage', '', '')
+    #addDir(TRANSLATE(30032), '', 'remPage', '', '')
     xbmcplugin.endOfDirectory(pluginhandle)
 
 
@@ -70,8 +71,8 @@ def get_all_devices():
         u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path') + '/addDeviceToPage2.py,' + deviceId + ',').decode(
             'utf-8')
         cm = []
-        cm.append((get_translation(30033), "XBMC.RunScript(%s add,pages)" % u))
-        cm.append((get_translation(30034), "XBMC.RunScript(%s rem,pages)" % u))
+        cm.append((TRANSLATE(30033), "XBMC.RunScript(%s add,pages)" % u))
+        cm.append((TRANSLATE(30034), "XBMC.RunScript(%s rem,pages)" % u))
         '''
         addDir(deviceId, '', 'getDevice', '', deviceId)
     xbmcplugin.endOfDirectory(pluginhandle)
@@ -152,8 +153,8 @@ def get_all_groups():
         url = group['url']
         groupid = group['id']
         addDir(name, url, 'getGroup', '', groupid)
-    #addDir(get_translation(30041), '', 'addGroup', '', '')
-    #addDir(get_translation(30042), '', 'remGroup', '', '')
+    #addDir(TRANSLATE(30041), '', 'addGroup', '', '')
+    #addDir(TRANSLATE(30042), '', 'remGroup', '', '')
     xbmcplugin.endOfDirectory(pluginhandle)
 
 
@@ -230,9 +231,6 @@ def actions_select(deviceid):
 
 """KODI STUFF"""
 
-def get_translation(string_id):
-    return addon.getLocalizedString(string_id)
-
 
 def addDir(name, url, mode, iconimage, deviceId):
     u = sys.argv[0] + "?url=" + quote_plus(url) + "&mode=" + str(mode) + "&name=" + quote_plus(name) + "&deviceId=" + str(deviceId)
@@ -305,4 +303,3 @@ elif mode == 'set_rule':
 #    addItem('group')
 #elif mode == 'remGroup':
 #    remItem('group')
-
