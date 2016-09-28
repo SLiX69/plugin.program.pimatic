@@ -1,17 +1,5 @@
 import requests
 
-'''
-addonID = 'plugin.program.pimatic'
-addon = xbmcaddon.Addon(id=addonID)
-# pluginhandle = int(sys.argv[1])
-
-host = addon.getSetting('ipaddress')
-port = addon.getSetting('port')
-username = addon.getSetting('username')
-password = addon.getSetting('password')
-'''
-
-
 class pimatic:
     host = ''
     port = ''
@@ -122,6 +110,7 @@ class pimatic:
                 devices.append(device)
         return devices
 
+
     def get_all_pages(self):
         pages = []
         data = self.get_requests('http://%s:%s@%s:%s/api/pages' % (self.username, self.password, self.host, self.port))['pages']
@@ -148,12 +137,13 @@ class pimatic:
         data = self.get_requests('http://%s:%s@%s:%s/api/variables' % (self.username, self.password, self.host, self.port))['variables']
         for i in data:
             name = i['name'].encode('utf-8')
-            value = i['value']
-            unit = i['unit']
-            if isinstance(value, float) or isinstance(value, int) or isinstance(value, long) or (value is None):
-                value = str(value)
-            value = ' ' + value.encode('utf-8') + unit.encode('utf-8')
-            name += value
+            if 'value' in i:
+                value = i['value']
+                unit = i['unit']
+                if isinstance(value, float) or isinstance(value, int) or isinstance(value, long) or (value is None):
+                    value = str(value)
+                value = ' ' + value.encode('utf-8') + unit.encode('utf-8')
+                name += value
             variable = {'name': name}
             variables.append(variable)
         return variables
