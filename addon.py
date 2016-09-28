@@ -1,341 +1,305 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import urllib
 import sys
 import requests
 import os
-import xbmc
-import xbmcplugin
-import xbmcgui
-import xbmcaddon
+import datetime
+import xbmc, xbmcplugin, xbmcgui, xbmcaddon
+from urllib import unquote_plus, unquote, quote_plus
+from resources.lib.pim import pimatic
 
-
-from resources.lib.getDevices import getTempDevice, getPresence, getButtonDevice, getSysSenDevice, getDimmerDevice, getSwitchDevice
-from resources.lib.getIndex import getAllDevices,getAllVars,getAllRules,getAllGroups,getGroup,getPage,getPages,getRule
-from resources.lib.getDeviceStuff import getActionsList,getDeviceHistory
-
-
-addonID = 'plugin.video.pimatic'
+addonID = 'plugin.program.pimatic'
 addon = xbmcaddon.Addon(id=addonID)
 home = addon.getAddonInfo('path').decode('utf-8')
 icon = xbmc.translatePath(os.path.join(home, 'icon.png'))
 fanart = xbmc.translatePath(os.path.join(home, 'fanart.jpg'))
-#addDeviceToPage = xbmc.translatePath(os.path.join(home, 'addDeviceToPage2.py'))
+# addDeviceToPage = xbmc.translatePath(os.path.join(home, 'addDeviceToPage2.py'))
 pluginhandle = int(sys.argv[1])
-
-translation = addon.getLocalizedString
-
+TRANSLATE = addon.getLocalizedString
 
 host = addon.getSetting('ipaddress')
 port = addon.getSetting('port')
 username = addon.getSetting('username')
 password = addon.getSetting('password')
 
+pim = pimatic(host, port, username, password)
 
 
 def main():
-    xbmc.log(home)
-    addDir('Pages','pages',1,'','')
-    addDir('Devices','',5,'','')
-    addDir('Variables','',9,'','')
-    addDir('Groups','',10,'','')
-    addDir('Rules','',7,'','')
+    addDir(TRANSLATE(30010), '', 'getAllPages', '', '')
+    addDir(TRANSLATE(30011), '', 'getAllDevices', '', '')
+    addDir(TRANSLATE(30012), '', 'getAllVars', '', '')
+    addDir(TRANSLATE(30013), '', 'getAllGroups', '', '')
+    addDir(TRANSLATE(30014), '', 'getAllRules', '', '')
     xbmcplugin.endOfDirectory(pluginhandle)
 
 
-def executeRule(url):
-    xbmc.log('EXECUTE-RULE')
-    actionsToken = url
-    line1 = "Do you really want to execute the rule?"
-    retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
+def get_page(pageId):
+    devices = pim.get_page(pageId)
+    #xbmc.log(str(devices))
+    for device in devices:
+        name = device['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
+        #url = device['url']    #old template
+        #mode = device['mode']
+        deviceId = device['deviceId']
+        addDir(name, '', 'getDevice', '', deviceId)
+    xbmcplugin.endOfDirectory(pluginhandle)
+
+
+"""INDEX"""
+def get_all_pages():
+    pages = pim.get_all_pages()
+    for page in pages:
+        name = page['name']
+        url = page['url']
+        #mode = page['mode']
+        addDir(name, url, 'getPage', '', '', )
+    #addDir(TRANSLATE(30031), '', 'addPage', '', '')
+    #addDir(TRANSLATE(30032), '', 'remPage', '', '')
+    xbmcplugin.endOfDirectory(pluginhandle)
+
+
+def get_all_devices():
+    devices = pim.get_all_devices()
+    for device in devices:
+        deviceId = device['name']
+        xbmc.log(str(deviceId), level=xbmc.LOGDEBUG)
+        #url = device['url']    #old template
+        # FIX CM
+        '''
+        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path') + '/addDeviceToPage2.py,' + deviceId + ',').decode(
+            'utf-8')
+        cm = []
+        cm.append((TRANSLATE(30033), "XBMC.RunScript(%s add,pages)" % u))
+        cm.append((TRANSLATE(30034), "XBMC.RunScript(%s rem,pages)" % u))
+        '''
+        addDir(deviceId, '', 'getDevice', '', deviceId)
+    xbmcplugin.endOfDirectory(pluginhandle)
+
+
+def get_rule(rule_id):
+    xbmc.log(str(rule_id), level=xbmc.LOGDEBUG)
+    data = pim.get_rule(rule_id)
+    id = data['id']
+    name = data['name']
+    cond = 'IF: %s' % data['cond']
+    acti = 'THEN: %s' % data['acti']
+    logg = 'logging: %s' % data['logging']
+    active = 'active: %s' % data['active']
+    addDir(name, '', 'end', '', '')
+    addDir(cond, '', 'end', '', '')
+    addDir(acti, '', 'exeRule', '', id)
+    addDir(active, 'active', 'set_rule', '', id)
+    addDir(logg, 'logging', 'set_rule', '', id)
+    xbmcplugin.endOfDirectory(pluginhandle)
+
+
+def execute_rule(rule_id):
+    data = pim.get_rule(rule_id)
+    actionToken = data['acti']
+    line = "Do you really want to execute the rule?"
+    retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line)
     if retval_rule == 1:
         url = ('http://%s:%s@%s:%s/api/execute-action' % (username, password, host, port))
-        payload = {'actionString': actionsToken}
+        payload = {'actionString': actionToken}
         r = requests.post(url, json=payload)
         status = (str(r.status_code))
         out = str(r.json())
-        xbmc.log(status + ' - ' + out + ' - actionsToken: ' + actionsToken)
+        xbmc.log(status + ' - ' + out + ' - actionsToken: ' + actionToken)
 
 
-def getDevice(name,url,deviceid):
-    template = url
-    if template == 'switch':
-        addDir('Actions','0',12,'',deviceid)
-        addDir('History','0',6,'',deviceid)
-    elif template == 'temperature':
-        getTempDevice(deviceid)
-    elif template == 'presence':
-        getPresence(deviceid)
-    elif template == 'buttons':
-        getButtonDevice(deviceid)
-    elif template == 'device':
-        getSysSenDevice('',deviceid)
-    elif template == 'dimmer':
-        getDimmerDevice(deviceid)
-        addDir('Actions','0',12,'',deviceid)
-    elif template == 'shutter':
-        addDir('Actions','0',12,'',deviceid)
-        addDir('History','0',6,'',deviceid)
-    elif template == 'contact':
-        addDir('Actions','0',12,'',deviceid)
-        addDir('History','0',6,'',deviceid)
-    elif template == 'thermostat':
-        addDir('Actions','0',12,'',deviceid)
-        addDir('History','0',6,'',deviceid)
-    elif template == 'KeyError':
-        addDir('KeyError','',99,'',deviceid)
-
-    xbmcplugin.endOfDirectory(pluginhandle,succeeded=True,updateListing=False,cacheToDisc=True)
-
-def getActionsAsPopup(deviceid):
-    actions=getActionsList(deviceid)
-    dialog=xbmcgui.Dialog()
-    call=dialog.select("Choose an action",actions)
-    print actions[call]
-    url = actions[call]
-    executeAction('', url, deviceid)
-
-def executeAction(name,url,deviceid):
-    if url == 'getState':
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-        state = str(switchlog.json()['result'])
-        xbmc.executebuiltin("Notification(pimatic addon,state of %s is %s,4000,%s)" % (deviceid, state, icon))
-        url = ''
-        xbmc.log(state)
-    if url == 'changeStateTo':
-        print
-        states = ['true', 'false']
-        dialog=xbmcgui.Dialog()
-        call=dialog.select("Choose an action",states)
-        url = 'changeStateTo?state=' + states[call]
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-    if url == 'changeDimlevelTo':
-        level = ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']
-        dialog=xbmcgui.Dialog()
-        call=dialog.select("Choose an action",level)
-        url = 'changeDimlevelTo?dimlevel=' + level[call]
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-    if url == 'changeContactTo':
-        contact = ['true', 'false']
-        dialog=xbmcgui.Dialog()
-        call=dialog.select("Choose an action",contact)
-        url = 'changeContactTo?contact=' + contact[call]
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-    if url == 'moveToPosition':
-        position = ['up', 'down']
-        dialog=xbmcgui.Dialog()
-        call=dialog.select("Choose an action",position)
-        url = 'moveToPosition?state=' + position[call]
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-    if url == 'changeModeTo':
-        mode = ['auto', 'manu', 'boost']
-        dialog=xbmcgui.Dialog()
-        call=dialog.select("Choose an action",mode)
-        url = 'changeModeTo?mode=' + mode[call]
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-    if url == 'changeTemperatureTo':
-        temp = ['15', '16', '17', '18', '18.5', '19', '19.5', '20', '20.5', '21', '21.5', '22', '22.5', '23', '23.5',
-                '24', '24.5', '25', '26', '27', '28']
-        dialog=xbmcgui.Dialog()
-        call=dialog.select("Choose an action",temp)
-        url = 'changeTemperatureTo?temperatureSetpoint=' + temp[call]
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-
+def set_rule(rule_id, name):
+    data = pim.get_rule(rule_id)
+    state = data[name]
+    if not state:
+        change_to = True
     else:
-        switchlog = requests.get('http://%s:%s@%s:%s/api/device/%s/%s' % (username, password, host, port, deviceid, url))
-
-def getURL(url):
-    r=requests.get(url)
-    data=r.json()
-    return data
-    r.close()
-
-def addDevice(url):
-    xbmc.log(url)
-    if url:
-        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage2.py,'+ url +',').decode('utf-8')
-        xbmc.executebuiltin('XBMC.RunScript(%s add,devices)' % u)
-    else:
-        u = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')+'/addDeviceToPage2.py,,').decode('utf-8')
-        xbmc.executebuiltin('XBMC.RunScript(%s add,both)' % u)
-
-def setRule(url, iconimage, deviceid):
-    ruleid = iconimage
-    if url == 'True':
-        line1 = "%s is %s. Set it to 'False'?" % (deviceid, url)
-        choice = False
-    else:
-        line1 = "%s is %s. Set it to 'True'?" % (deviceid, url)
-        choice = True
-    retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
+        change_to = False
+    line = "%s is %s. Set it to %s?" % (name, state, str(change_to))
+    retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line)
     if retval_rule == 1:
-        url = ('http://%s:%s@%s:%s/api/rules/%s' % (username, password, host, port, ruleid))
-        payload = {'ruleId': ruleid, 'rule':{deviceid: choice}}
+        url = ('http://%s:%s@%s:%s/api/rules/%s' % (username, password, host, port, rule_id))
+        payload = {'ruleId': rule_id, 'rule':{name: change_to}}
         r = requests.patch(url, json=payload)
         #status = (str(r.status_code))
         #out = str(r.json())
 
 
-def addItem(item):
-    keyboard = xbmc.Keyboard('', 'add '+item+'')
-    keyboard.doModal()
-    if keyboard.isConfirmed() and keyboard.getText():
-        uinput = keyboard.getText()
-        try:
-            url = 'http://%s:%s@%s:%s/api/%ss/%s' % (username, password, host, port, item, uinput)
-            payload = {item+'Id': uinput, item:{'name': uinput}}
-            r = requests.post(url, json=payload)
-            status = (str(r.status_code))
-            out = str(r.json())
-            xbmc.log(status + ' - ' + out + ' - User-Input: ' + uinput)
-        except KeyError:
-            xbmc.log('Pimatic Addon: Add '+item+' - KeyError while Input add'+item+'')
+def get_all_rules():
+    rules = pim.get_all_rules()
+    for rule in rules:
+        name = rule['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
+        deviceid = rule['deviceId']
+        addDir(name, '', 'getRule', '', deviceid)
+    xbmcplugin.endOfDirectory(pluginhandle)
 
 
-def remItem(item):
-    item = item + 's'
-    xbmc.log(item)
-    id = getPopup(item)
-    line1 = "Do you really want to remove the "+item+" '"+id+"'?"
-    retval_rule = xbmcgui.Dialog().yesno("Pimatic Addon", line1)
-    if retval_rule == 1:
-        url = ('http://%s:%s@%s:%s/api/%s/%s' % (username, password, host, port, item, id))
-        payload = {''+item+'Id': id}
-        r = requests.delete(url, json=payload)
-        status = (str(r.status_code))
-        out = str(r.json())
-        xbmc.log('Pimatic Addon: Rem '+item+' ' +status+ ' - ' +out+ ' - User-Input: ' +id)
+def get_all_vars():
+    variables = pim.get_all_vars()
+    for variable in variables:
+        name = variable['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
+        addDir(name, '', 'end', '', '', )
+    xbmcplugin.endOfDirectory(pluginhandle)
 
 
-def kodilog(string):
-    xbmc.log('Pimatic Addon - ' + string)
+def get_all_groups():
+    groups = pim.get_all_groups()
+    for group in groups:
+        name = group['name']
+        xbmc.log(str(name), level=xbmc.LOGDEBUG)
+        url = group['url']
+        groupid = group['id']
+        addDir(name, url, 'getGroup', '', groupid)
+    #addDir(TRANSLATE(30041), '', 'addGroup', '', '')
+    #addDir(TRANSLATE(30042), '', 'remGroup', '', '')
+    xbmcplugin.endOfDirectory(pluginhandle)
 
 
-def getList(url):
-    data = requests.get('http://%s:%s@%s:%s/api/%s' % (username, password, host, port, url))
+def get_group(groupid):
+    devices = pim.get_group(groupid)
+    for device in devices:
+        xbmc.log(str(device), level=xbmc.LOGDEBUG)
+        name = device
+        addDir(name, '', 'getDevice', '', name)
+    xbmcplugin.endOfDirectory(pluginhandle)
+
+
+"""GET DEIVCE STUFF"""
+
+
+def get_device(deviceid):
+    xbmc.log(str(deviceid), level=xbmc.LOGDEBUG)
     cnt = 0
-    list = []
-    for i in data.json()[url]:
-        #print i['id']
-    #for x in range(0, cnt):
-        list.append(i['id'])
-    return list
+    values, actions = pim.get_device_values(deviceid)
+    if actions:
+        addDir('Actions', '', 'getDeviceActions', '', deviceid)
+    for value in values:
+        addDir(value, str(cnt), 'getDevHistory', '', deviceid)
+        cnt += 1
+    xbmcplugin.endOfDirectory(pluginhandle)
 
 
-def getPopup(url):
-    list=getList(url)
-    dialog=xbmcgui.Dialog()
-    call=dialog.select("Pimatic Addon",list)
-    print list[call]
-    url = list[call]
-    return url
+def get_attribute_history(deviceid, url):
+    data = pim.get_device_history(deviceid)
+    for i in reversed(data[int(url)]):
+        time = i['t']
+        state = str(i['v'])
+        time = time / 1000
+        time2 = datetime.datetime.fromtimestamp(time)
+        time = (time2.strftime('%Y-%m-%d %H:%M:%S'))
+        name = (time).encode('utf-8') + ' was ' + (state).encode('utf-8')
+        addDir(name, '', '', '', '')
+    xbmcplugin.endOfDirectory(pluginhandle)
 
 
-def addDir(name,url,mode,iconimage,deviceid):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&iconimage="+urllib.quote_plus(iconimage)+"&deviceid="+urllib.quote_plus(deviceid)
-        ok=True
-        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-        liz.setInfo( type="Video", infoLabels={ "Title": name} )
-        liz.addContextMenuItems([ ('Refresh', 'Container.Refresh'),
-                                ('Go up', 'Action(ParentDir)') ])
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
-        return ok
+def get_device_actions(deviceid):
+    xbmc.log(str(deviceid), level=xbmc.LOGDEBUG)
+    actions_select(deviceid)
 
-def get_params():
-        param=[]
-        paramstring=sys.argv[2]
-        if len(paramstring)>=2:
-                params=sys.argv[2]
-                cleanedparams=params.replace('?','')
-                if (params[len(params)-1]=='/'):
-                        params=params[0:len(params)-2]
-                pairsofparams=cleanedparams.split('&')
-                param={}
-                for i in range(len(pairsofparams)):
-                        splitparams={}
-                        splitparams=pairsofparams[i].split('=')
-                        if (len(splitparams))==2:
-                                param[splitparams[0]]=splitparams[1]
-        return param        
-params=get_params()
 
-name=None
-url=None
-mode=None
-iconimage=None
-deviceid=None
+def actions_select(deviceid):
+    value = ''
+    attribute = ''
+    actions = pim.get_device_actions(deviceid)
+    dialog = xbmcgui.Dialog()
+    call = dialog.select("Choose an action", actions)
+    if call != -1:
+        action = actions[call]
+        param = pim.get_params(deviceid, action)    # get params
+        values = param[0]['values']     # get values of param
+        xbmc.log('values')
+        xbmc.log(str(values))
+        if values == '':
+            # action without params
+            d = 0
+        elif values == 'get_number':
+            # choose number
+            d = dialog.input(heading='Choose Value', type=xbmcgui.INPUT_NUMERIC)
+            xbmc.log(str(d))
+        else:
+            # choose string
+            d = dialog.select(heading='Choose Value', list=values)
+            if d != -1:
+                value = values[d]
+                attribute = param[0]['attribute']
+        if d != -1:
+            pim.execute_action(deviceid, action, attribute, value)
 
-try:
-        url=urllib.unquote_plus(params["url"])
-except:
-        pass
-try:
-        name=urllib.unquote_plus(params["name"])
-except:
-        pass
-try:
-        iconimage=urllib.unquote_plus(params["iconimage"])
-except:
-        pass
-try:
-        desc=urllib.unquote_plus(params["desc"])
-except:
-        pass
-try:
-        fanart=urllib.unquote_plus(params["fanart"])
-except:
-        pass
-try:
-        deviceid=urllib.unquote_plus(params["deviceid"])
-except:
-        pass
-try:
-        mode=int(params["mode"])
-except:
-        pass
+
+"""KODI STUFF"""
+
+
+def addDir(name, url, mode, iconimage, deviceId):
+    u = sys.argv[0] + "?url=" + quote_plus(url) + "&mode=" + str(mode) + "&name=" + quote_plus(name) + "&deviceId=" + str(deviceId)
+    ok = True
+    item = xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+    item.setInfo(type="Video", infoLabels={"Title": name})
+    #item.setProperty('fanart_image', fanart)
+    xbmcplugin.addDirectoryItem(handle=pluginhandle, url=u, listitem=item, isFolder=True)
+
+
+def parameters_string_to_dict(parameters):
+    ''' Convert parameters encoded in a URL to a dict. '''
+    paramDict = {}
+    if parameters:
+        paramPairs = parameters[1:].split("&")
+        for paramsPair in paramPairs:
+            paramSplits = paramsPair.split('=')
+            if (len(paramSplits)) == 2:
+                paramDict[paramSplits[0]] = paramSplits[1]
+    return paramDict
+
+params = parameters_string_to_dict(sys.argv[2])
+mode = params.get('mode')
+url = params.get('url')
+name = params.get('name')
+deviceId = params.get('deviceId')
+if type(url) == type(str()):
+    url = unquote_plus(url)
 
 if mode == None:
-     main()
-elif mode == 'test':
-    getTest()
-elif mode == 1:
-    getPages()
-elif mode == 2:
-    getPage(url)
-elif mode == 3:
-    getDevice(name,url,deviceid)
-elif mode == 4:
-    executeAction(name,url,deviceid)
-elif mode == 5:
-    getAllDevices()
-elif mode == 6:
-    getDeviceHistory(deviceid, url)
-elif mode == 7:
-    getAllRules()
-elif mode == 8:
-    getRule(deviceid)
-elif mode == 9:
-    getAllVars()
-elif mode == 10:
-    getAllGroups()
-elif mode == 11:
-    getGroup(url)
-elif mode == 12:
-    getActionsAsPopup(deviceid)
-elif mode == 13:
-    executeRule(url)
-elif mode == 14:
-    addDevice(url)
-elif mode == 15:
-    setRule(url, iconimage, deviceid)
-elif mode == 29:
-    addItem('page')
-elif mode == 31:
-    remItem('page')
-elif mode == 33:
-    addItem('group')
-elif mode == 35:
-    remItem('group')
-
-
-
+    main()
+#######################
+elif mode == 'getAllPages':
+    get_all_pages()
+elif mode == 'getAllVars':
+    get_all_vars()
+elif mode == 'getAllGroups':
+    get_all_groups()
+elif mode == 'getAllDevices':
+    get_all_devices()
+elif mode == 'getAllRules':
+    get_all_rules()
+#######################
+elif mode == 'getPage':
+    get_page(url)
+elif mode == 'getDevice':
+    get_device(deviceId)
+elif mode == 'getRule':
+    get_rule(deviceId)
+elif mode == 'getGroup':
+    get_group(deviceId)
+#######################
+elif mode == 'getDeviceActions':
+    get_device_actions(deviceId)
+elif mode == 'exeActi':
+    executeAction(name, url, deviceid)
+elif mode == 'getDevHistory':
+    get_attribute_history(deviceId, url)
+elif mode == 'exeRule':
+    execute_rule(deviceId)
+elif mode == 'set_rule':
+    set_rule(deviceId, url)
+#elif mode == 'addDevice':
+#    addDevice(url)
+#elif mode == 'addPage':
+#    addItem('page')
+#elif mode == 'remPage':
+#    remItem('page')
+#elif mode == 'addGroup':
+#    addItem('group')
+#elif mode == 'remGroup':
+#    remItem('group')

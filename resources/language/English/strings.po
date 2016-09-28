@@ -16,30 +16,48 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgctxt "#32001"
+msgctxt "#30010"
+msgid "Pages"
+msgstr ""
+
+msgctxt "#30011"
+msgid "Devices"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Variables"
+msgstr ""
+
+msgctxt "#30013"
+msgid "Groups"
+msgstr ""
+
+msgctxt "#30014"
+msgid "Rules"
+msgstr ""
+
+msgctxt "#30020"
+msgid "Actions"
+msgstr ""
+
+# settings
+
+msgctxt "#30101"
 msgid "Pimatic Host"
 msgstr ""
 
-msgctxt "#32035"
+msgctxt "#30135"
 msgid "IP Address"
 msgstr ""
 
-msgctxt "#32036"
+msgctxt "#30136"
 msgid "Port"
 msgstr ""
 
-msgctxt "#32037"
+msgctxt "#30137"
 msgid "Username"
 msgstr ""
 
-msgctxt "#32038"
+msgctxt "#30138"
 msgid "Password"
-msgstr ""
-
-msgctxt "#32040"
-msgid "Show and set 'active' & 'logging' for rules"
-msgstr ""
-
-msgctxt "#32050"
-msgid "Do you really want to execute the rule?"
 msgstr ""
